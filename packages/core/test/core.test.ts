@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -14,6 +15,7 @@ import {
   openDatabase,
   parseStackTrace,
   readSourceContext,
+  routingFinding,
   runAi,
   type SourceLine,
 } from '../src/index.js';
@@ -89,11 +91,18 @@ describe('diffPayloads', () => {
     expect(out).toEqual(['o.items[0].q: was number in last good payload, now string']);
   });
 
-  it('says so when there is no earlier success, and still flags nulls', () => {
-    const out = diffPayloads(undefined, { customer: null, items: [] });
+  it('says so when there is no earlier success, flags empty arrays, but does not list nulls', () => {
+    const out = diffPayloads(undefined, { customer: null, nested: { phone: null }, items: [] });
     expect(out[0]).toBe(NO_BASELINE);
-    expect(out).toContain('customer: is null');
     expect(out).toContain('items: is an empty array');
+    expect(out.join(' | ')).not.toMatch(/null/);
+  });
+
+  it('still reports a field that turned null when a baseline exists', () => {
+    expect(diffPayloads({ customer: { id: 1 } }, { customer: null })).toContain(
+      'customer: was object in last good payload, now null',
+    );
+    expect(diffPayloads({ customer: null }, { customer: null })[0]).toMatch(/No structural differences/);
   });
 
   it('reports no differences for identical shapes', () => {
@@ -192,5 +201,66 @@ describe('diagnosis + cache', () => {
     expect(ai).toHaveProperty('error');
     const key = cacheKey({ system: 'a', user: 'b' });
     expect(cache.get(key)).toBeUndefined();
+  });
+});
+
+describe('routing problems', () => {
+  const base = { method: 'POST', path: '/hooks/typo', payload: '{"a":1}', rootDir: os.tmpdir() };
+  const trace = 'TypeError: boom\n    at h (/nowhere/h.ts:3:9)';
+
+  it.each([404, 405])('reports a routing finding for HTTP %i and skips the payload diff', (status) => {
+    const r = analyzeRules({ ...base, status, stderr: '', prevOkPayload: '{"a":"x"}' });
+    expect(r.routing).toBe(true);
+    expect(r.ruleBased).toEqual([
+      `No route matched POST /hooks/typo on the local app (HTTP ${status}). This is a routing problem, not a payload problem. Check the path your provider is calling.`,
+    ]);
+    expect(r.ruleBased[0]).toBe(routingFinding('POST', '/hooks/typo', status));
+  });
+
+  it('treats 404 as routing even when stderr has a trace', () => {
+    expect(analyzeRules({ ...base, status: 404, stderr: trace }).routing).toBe(true);
+  });
+
+  it('reports routing when there is no stderr and no stack frame', () => {
+    const r = analyzeRules({ ...base, status: 500, stderr: '  \n' });
+    expect(r.routing).toBe(true);
+    expect(r.ruleBased[0]).toContain('(HTTP 500)');
+  });
+
+  it('is not a routing problem when a stack frame exists', () => {
+    const r = analyzeRules({ ...base, status: 500, stderr: trace });
+    expect(r.routing).toBeUndefined();
+    expect(r.frame?.line).toBe(3);
+  });
+
+  it('does not claim routing when stderr is not captured (forward-only) or the app was unreachable', () => {
+    expect(analyzeRules({ ...base, status: 500, stderr: '', stderrCaptured: false }).routing).toBeUndefined();
+    const conn = analyzeRules({ ...base, status: 502, stderr: '', connectionFailed: true });
+    expect(conn.routing).toBeUndefined();
+    expect(conn.ruleBased[0]).toMatch(/did not answer/);
+  });
+
+  it('never calls the model for a routing problem', async () => {
+    let called = 0;
+    const server = http.createServer((_req, res) => {
+      called++;
+      res.end('{}');
+    });
+    await new Promise<void>((r) => server.listen(0, '127.0.0.1', r));
+    const aiUrl = `http://127.0.0.1:${(server.address() as { port: number }).port}`;
+    try {
+      const cache = new AiCache(openDatabase(':memory:'));
+      for (const ev of [
+        { ...base, status: 404, stderr: '' },
+        { ...base, status: 500, stderr: '' },
+      ]) {
+        const r = await runAi(ev, analyzeRules(ev), { aiUrl, cache });
+        expect(r).toMatchObject({ error: { kind: 'skipped' } });
+      }
+      expect(called).toBe(0);
+    } finally {
+      server.closeAllConnections();
+      server.close();
+    }
   });
 });

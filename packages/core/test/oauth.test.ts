@@ -29,7 +29,7 @@ describe('oauthFindings', () => {
   });
 
   it('only runs for GET requests inside analyzeRules', () => {
-    const base = { path: '/callback/oauth', query: 'error=access_denied', status: 500, stderr: '', rootDir: '.' };
+    const base = { path: '/callback/oauth', query: 'error=access_denied', status: 500, stderr: 'TypeError: x\n    at h (/nowhere/h.ts:1:1)', rootDir: '.' };
     expect(analyzeRules({ ...base, method: 'GET' }).ruleBased.join('\n')).toContain('error=access_denied');
     expect(analyzeRules({ ...base, method: 'POST', payload: '{}' }).ruleBased.join('\n')).not.toContain('error=access_denied');
   });

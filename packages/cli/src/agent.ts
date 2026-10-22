@@ -165,6 +165,7 @@ export async function startAgent(o: AgentOptions): Promise<Agent> {
       stderr: ev.stderrWindow ?? '',
       rootDir,
       connectionFailed: ev.connectionFailed,
+      stderrCaptured: !!app,
     };
     const base = analyzeRules(evidence);
     store.setDiagnosis(id, { ...base, aiPending: true, hasAppProcess: !!app });

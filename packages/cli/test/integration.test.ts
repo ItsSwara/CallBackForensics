@@ -45,6 +45,11 @@ beforeAll(async () => {
     req.on('data', (c: Buffer) => chunks.push(c));
     req.on('end', () => {
       seen.push({ method: req.method, url: req.url, headers: req.headers, body: Buffer.concat(chunks) });
+      if (req.url?.startsWith('/nope')) {
+        res.statusCode = 404;
+        res.end('Cannot POST /nope');
+        return;
+      }
       if (req.url?.startsWith('/boom')) {
         res.statusCode = 500;
         res.end('exploded');
@@ -198,6 +203,49 @@ describe('relay -> websocket -> cli -> local app', () => {
       expect(ev.diagnosis?.ruleBased).toContain('customer: was object in last good payload, now null');
       expect(ev.diagnosis?.ai).toHaveProperty('error');
       expect(ev.diagnosis?.aiPending).toBe(false);
+    } finally {
+      await agent.stop();
+    }
+  });
+
+  it('reports a routing problem for a 404 and never asks the model', async () => {
+    const agent = await startAgent({
+      relay: null,
+      port: appPort,
+      aiUrl: 'http://127.0.0.1:1',
+      srcDir: '.',
+      dashboardPort: 0,
+      dbPath: ':memory:',
+      cachePath: null,
+      quiet: true,
+    });
+    try {
+      const seeded = {
+        id: 'seed-404',
+        receivedAt: Date.now(),
+        method: 'POST',
+        path: '/nope',
+        query: '',
+        headers: { 'content-type': 'application/json' },
+        body: Buffer.from('{"a":1}'),
+        status: 404,
+        respHeaders: {},
+        respBody: Buffer.alloc(0),
+        durationMs: 1,
+        replayOf: null,
+        stderrWindow: null,
+        diagnosis: null,
+        connectionFailed: false,
+      };
+      agent.store.insert(seeded);
+      const r = await agent.replay(seeded.id);
+      expect(r?.event).toMatchObject({ status: 404 });
+      await agent.idle();
+      const d = agent.store.get(r!.event.id as string)!.diagnosis!;
+      expect(d.ruleBased).toEqual([
+        'No route matched POST /nope on the local app (HTTP 404). This is a routing problem, not a payload problem. Check the path your provider is calling.',
+      ]);
+      expect(d.ai).toMatchObject({ error: { kind: 'skipped' } });
     } finally {
       await agent.stop();
     }

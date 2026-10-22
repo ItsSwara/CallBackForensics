@@ -56,10 +56,9 @@ function walk(prev: unknown, cur: unknown, p: string, out: Finding[]): void {
 }
 
 function standalone(cur: unknown, p: string, out: Finding[]): void {
+  // Without a baseline a null proves nothing (it may be normal), so only empty arrays are flagged.
   const k = kindOf(cur);
-  if (k === 'null') {
-    out.push({ rank: 1, text: `${p || '(payload)'}: is null` });
-  } else if (k === 'array') {
+  if (k === 'array') {
     const a = cur as unknown[];
     if (a.length === 0) out.push({ rank: 3, text: `${p || '(payload)'}: is an empty array` });
     else standalone(a[0], `${p}[0]`, out);

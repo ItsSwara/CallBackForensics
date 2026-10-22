@@ -22,10 +22,14 @@ export interface Evidence {
   rootDir: string;
   /** The app never answered (connection refused, timeout). */
   connectionFailed?: boolean;
+  /** False when the CLI is not running the app (forward-only mode), so empty stderr proves nothing. Default true. */
+  stderrCaptured?: boolean;
 }
 
 export interface RuleBased {
   ruleBased: string[];
+  /** The failure is a routing problem; the model is not consulted. */
+  routing?: boolean;
   frame?: Frame & { relPath?: string };
   snippet?: SourceResult;
   errorMessage?: string;
@@ -46,11 +50,26 @@ function parseJson(text?: string): unknown {
   }
 }
 
+export const routingFinding = (method: string, path: string, status: number | null) =>
+  `No route matched ${method} ${path} on the local app (HTTP ${status ?? 'no response'}). ` +
+  'This is a routing problem, not a payload problem. Check the path your provider is calling.';
+
 /** Instant, model-free analysis. Always succeeds. */
 export function analyzeRules(ev: Evidence): RuleBased {
   const ruleBased: string[] = [];
+  const trace = parseStackTrace(ev.stderr);
   if (ev.connectionFailed) {
     ruleBased.push('The local app did not answer: connection refused or timed out. Check it is running on the expected port.');
+  } else if (
+    ev.status === 404 ||
+    ev.status === 405 ||
+    (ev.stderrCaptured !== false && ev.stderr.trim() === '' && !trace.frame)
+  ) {
+    return {
+      ruleBased: [routingFinding(ev.method, ev.path, ev.status)],
+      routing: true,
+      errorMessage: trace.errorMessage,
+    };
   }
   if (ev.query !== undefined && /^GET$/i.test(ev.method)) ruleBased.push(...oauthFindings(ev.path, ev.query));
   const payloadText = asText(ev.payload);
@@ -61,7 +80,6 @@ export function analyzeRules(ev: Evidence): RuleBased {
   } else {
     ruleBased.push(...diffPayloads(parseJson(asText(ev.prevOkPayload)), current));
   }
-  const trace = parseStackTrace(ev.stderr);
   let frame: RuleBased['frame'];
   let snippet: SourceResult | undefined;
   if (trace.frame) {
@@ -108,6 +126,9 @@ export interface AiOptions {
 export async function runAi(ev: Evidence, base: RuleBased, opts: AiOptions): Promise<AiResult> {
   if (ev.connectionFailed) {
     return { error: { kind: 'skipped', message: 'No app response to analyze: the app was not reachable.' } };
+  }
+  if (base.routing) {
+    return { error: { kind: 'skipped', message: 'Routing problem: no route matched, so there is nothing for the model to explain.' } };
   }
   const prompt = promptFor(ev, base);
   const key = cacheKey(prompt);

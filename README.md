@@ -117,10 +117,12 @@ Relay limits: 1MB body (413), 60 requests/minute per tunnel (429), 20 tunnels pe
 
 For every 4xx/5xx or connection failure the agent waits 400ms, takes the app's stderr lines from the request window, and builds:
 
-1. **Rule-based findings (instant):** payload diff against the last 2xx for the same method and path (missing keys, new keys, type changes, nulls, empty arrays, with JSON paths), the parsed error line, the first non-`node_modules` frame, and the source lines around it (path-traversal safe: it will not read outside `--src`).
+1. **Rule-based findings (instant):** payload diff against the last 2xx for the same method and path (missing keys, new keys, type changes, fields that became null, empty arrays, with JSON paths; with no earlier success there is nothing to compare, so only empty arrays are flagged and nulls are not listed), the parsed error line, the first non-`node_modules` frame, and the source lines around it (path-traversal safe: it will not read outside `--src`).
 2. **AI explanation (local model):** a compact prompt (about 1,500 tokens max) with PAYLOAD, PAYLOAD DIFF, ERROR and FAILING CODE (failing line marked `>>`). Answers are cached in SQLite by `sha256(prompt)`; the cache only ever holds real model output.
 
 Model calls run one at a time. If the model is down or slow, the rule-based part is already on screen.
+
+**Routing problems skip the model.** If the app answers 404 or 405, or a failure leaves no stderr and no stack frame (while the CLI is capturing the app's stderr), the finding is "No route matched <METHOD> <path> on the local app (HTTP <status>). This is a routing problem, not a payload problem. Check the path your provider is calling." and the model is not called. In forward-only mode (no app command) empty stderr proves nothing, so that second condition does not fire.
 
 ### OAuth rules (exactly these four)
 
