@@ -16,7 +16,7 @@ A third-party callback fails on your machine. The sender shows a bare `500`, the
 ## What it does
 
 1. A small cloud **relay** gives you one stable public URL: `https://RELAY/cb/<id>/...`.
-2. The local **`cbf`** agent receives callbacks over a WebSocket tunnel and forwards them to your `localhost` app, byte for byte (so HMAC signature checks still pass).
+2. The local **`cbf`** agent receives callbacks over a WebSocket tunnel and forwards them to your `localhost` app, byte for byte. This was verified with the demo sender's simulated signatures; it has not been tested against a real provider's signature (the real GitHub ping was sent without a secret).
 3. A local **dashboard** (`http://127.0.0.1:4000`) lists every request, replays any of them in one click, and shows the response.
 4. When your app answers 4xx/5xx, the agent builds evidence: the payload, a diff against the last successful payload, your app's stack trace, and the source lines around the failing line.
    - **Rule-based findings** appear instantly.
@@ -47,7 +47,7 @@ If the model is not running you still get the rule-based findings. If the app re
 
 ## Quick start
 
-Requires Node 20+. A model server is optional but recommended.
+Developed and tested on Node 24; Node 20 not verified. A model server is optional but recommended.
 
 ```bash
 git clone https://github.com/ItsSwara/CallBackForensics.git && cd CallBackForensics
@@ -163,7 +163,7 @@ How to read this:
 
 - **Scoring is a keyword match.** An answer passes if it mentions every keyword group in the scenario's `truth.json` (the field name and the kind of problem). The keywords were fixed before any model ran. It does not check that the suggested fix is correct.
 - **The sample is small:** 6 scenarios, one bad payload each, one run, one model. Treat it as a smoke test, not a benchmark.
-- The one miss: for `oauth-redirect` the model blamed the missing `state` and never mentioned the provider's `access_denied` / `redirect_uri` error or the missing `code`.
+- The one miss: for `oauth-redirect` the model blamed the missing `state` parameter (leaving `pending` undefined, then a TypeError reading `verifier`) and never mentioned the provider's `access_denied` / `redirect_uri` error or the missing `code`.
 - Rule-based findings pass on all six because the diff and error line already name the field. The model's added value is the plain-English reason and the suggested fix.
 - A 1B model was **not run**.
 - Latency is for CPU inference; cached answers are instant.
@@ -188,6 +188,7 @@ The relay ships with a `Dockerfile` and a DigitalOcean App Platform spec (`.do/a
 - **Small models can be wrong.** That is why the rule-based findings are shown next to the AI text; check the highlighted code.
 - **404/405 skips the model.** On HTTP 404 or 405, or when a failure leaves no stderr and no stack frame (while the agent is capturing stderr), the finding is "No route matched <METHOD> <path> on the local app (HTTP <status>). This is a routing problem, not a payload problem. Check the path your provider is calling." No model call is made. In forward-only mode (no app command) empty stderr proves nothing, so the second condition does not apply.
 - **OAuth diagnosis covers only the four rules above.**
+- **Node version:** developed and tested on Node 24; Node 20 not verified.
 - **Relay storage is ephemeral on App Platform:** a redeploy loses buffered events and tunnels.
 - Callbacks pass through the relay to reach your machine; only the AI analysis is local. Do not point production secrets at a relay you do not control.
 - Local model latency on CPU can be 10 to 30 seconds on slower machines (2.5 to 5.4 s measured above).
@@ -204,6 +205,8 @@ packages/
 scripts/   dev-all.ts
 graphify-out/   generated knowledge graph of the codebase (GRAPH_REPORT.md is the readable summary)
 ```
+
+GitHub shows `graphify-out/graph.html` as source, so download it and open it locally in a browser. The generated graph files contain the original local folder name and path.
 
 ## License
 
