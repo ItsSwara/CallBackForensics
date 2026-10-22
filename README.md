@@ -7,7 +7,7 @@ Works with any inbound callback. The MVP diagnosis is tuned for JSON webhooks; O
 AI analysis runs locally. The relay stores events for 24h with token auth.
 
 - Repo: <https://github.com/ItsSwara/CallBackForensics>
-- More docs: [WALKTHROUGH.md](WALKTHROUGH.md) (one request, hop by hop) · [DEMO.md](DEMO.md) (3-minute script, judge Q&A) · [DEPLOY.md](DEPLOY.md) · [DECISIONS.md](DECISIONS.md) · [eval/results.md](eval/results.md)
+- More docs: [WALKTHROUGH.md](WALKTHROUGH.md) (one request, hop by hop) · [DEPLOY.md](DEPLOY.md) · [eval/results.md](eval/results.md)
 
 ## The problem
 
@@ -195,6 +195,8 @@ The relay ships with a `Dockerfile` and a DigitalOcean App Platform spec (`.do/a
 - "Copy as curl" is built from the stored text body; binary bodies are not reproduced.
 
 ## Codebase map
+
+`cbf` is short for Callback Forensics: it is the CLI binary, the `@cbf/*` package scope, the `~/.cbf` config directory and the `CBF_*` environment prefix.
 
 ```
 packages/
