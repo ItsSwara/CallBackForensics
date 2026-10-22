@@ -2,11 +2,36 @@
   "name": "callback-forensics",
   "version": "0.1.0",
   "private": true,
-  "description": "Open-source callback debugger: stable public URL, local replay, and a local model that explains failures from real evidence.",
+  "description": "Open-source callback debugger: a stable public URL for webhooks and OAuth redirects, one-click replay, and a local model that explains failures from the payload, the stack trace and your own source.",
+  "keywords": [
+    "webhook",
+    "webhooks",
+    "callback",
+    "oauth",
+    "debugger",
+    "tunnel",
+    "replay",
+    "llama.cpp",
+    "local-llm",
+    "developer-tools"
+  ],
   "license": "MIT",
+  "author": "ItsSwara",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ItsSwara/CallBackForensics.git"
+  },
+  "homepage": "https://github.com/ItsSwara/CallBackForensics#readme",
+  "bugs": {
+    "url": "https://github.com/ItsSwara/CallBackForensics/issues"
+  },
   "type": "module",
-  "engines": { "node": ">=20" },
-  "workspaces": ["packages/*"],
+  "engines": {
+    "node": ">=20"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
