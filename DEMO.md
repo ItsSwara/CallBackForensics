@@ -10,7 +10,7 @@
 - [ ] Cache is warm: `npm run demo:warm` (real model answers only; it runs every scenario through the real pipeline and prints `cached now` or `cached` per scenario)
 - [ ] Dashboard open on a projector-sized window: <http://127.0.0.1:4000>
 - [ ] If using the deployed relay: `npm run cbf -- doctor` shows relay reachable, and a test `demo:send ... good` returns 200.
-- [ ] Do **not** redeploy the relay on the day (tunnels reset, see DEPLOY.md).
+- [ ] Do **not** redeploy the relay on the day (tunnels reset, see DEPLOY.md). The deployed relay ran with autodeploy off; keep it that way.
 
 ## The script
 
@@ -45,6 +45,8 @@ Reset for the next run: `npm run demo:reset -- all`.
 
 ## Using the deployed relay instead of local
 
+The relay was deployed and tested end to end with a real GitHub ping on 22 Oct 2026; the demo instance will be taken down after judging. Substitute your own deployment:
+
 ```bash
 npm run cbf -- init --relay https://<app>.ondigitalocean.app
 npm run cbf -- start --port 3000 --src . -- npm run -s demo:app
@@ -72,7 +74,7 @@ If the model server will not start, the demo still works end to end with rule-ba
 
 **How do you know the AI is right?** We don't, which is why we do not rely on it alone. The rule-based findings are deterministic and shown next to the model text, the code line is highlighted so you can check it, and `npm run eval` scores model output against fixed ground-truth keywords per scenario (we report failures as they are).
 
-**What does the AI do that a script can't?** A script can say "`phone_number` changed from number to string". It cannot connect that to the `Number.isInteger` check three lines up, say what the handler expects, and propose a change in plain English. In our eval the rule-based output often already names the field; the model adds the *why* and the *fix*. (See eval/results.md for measured numbers.)
+**What does the AI do that a script can't?** A script can say "`phone_number` changed from number to string". It cannot connect that to the `Number.isInteger` check three lines up, say what the handler expects, and propose a change in plain English. In our eval the rule-based output often already names the field; the model adds the *why* and the *fix*. (Measured on Llama 3.2 3B Q4_K_M, CPU, 6 scenarios: rule-based 6/6, AI explanation 5/6, 2.5 to 5.4 s per answer; scoring is a keyword match and the sample is small. See eval/results.md. The 1B model has not been run.)
 
 **Does it support Python or Go?** The tunnel, replay, diff and dashboard work for any app. Stack trace and source parsing are Node-only today; for other languages you get the payload diff and the model without code context. Adding a parser per language is the natural next step.
 

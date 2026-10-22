@@ -17,7 +17,7 @@ Choices made without asking, with the reason. Newest concerns last.
   - `delivered=1` means the CLI sent a response; a 25s timeout records status 504 and is not re-flushed; "queued" events (status NULL) are flushed in order on connect.
   - If the socket drops while a request is waiting, the caller gets `202 {queued:true}` and the event is flushed when the CLI reconnects (at-least-once delivery; duplicates are possible and normal for webhooks).
   - Newer WebSocket replaces the older one (close code 4000).
-  - `TRUST_PROXY` defaults to `1` for the per-IP tunnel limit; the right value on App Platform is unverified.
+  - `TRUST_PROXY` defaults to `1` for the per-IP tunnel limit; adjust it to the number of proxies in front of the relay.
 - **Raw bytes:** `express.raw({type: () => true})` on the public route; the CLI forwards `Buffer` bodies and rewrites only `Host` and recomputes `Content-Length`.
 - **Diagnosis triggers on status >= 400** (the spec said both "4xx/5xx" and ">= 500"; the superset keeps 4xx covered, and the AI step is serialized so a burst of failures cannot hammer the model).
 - **Routing problems skip the model:** HTTP 404/405, or no stderr and no stack frame, yields one routing finding and no model call. The "no stderr" case only applies when the CLI is actually capturing the app's stderr (`stderrCaptured`), otherwise forward-only mode would label every 500 a routing problem. Without a baseline payload, nulls are no longer listed as findings (a null alone proves nothing); empty arrays still are.
@@ -38,9 +38,23 @@ Choices made without asking, with the reason. Newest concerns last.
 ## Optional work
 
 - **`oauth-redirect` scenario: done.** Core rules in `packages/core/src/oauth.ts` (four rules, GET only), a handler, fix, payloads and `truth.json`, unit tests, and README documentation of exactly which rules exist.
-- **Graphify:** the `graphify` skill is not installed in this environment, so `/graphify .` was skipped and no `graphify-out/` was committed. The README has a hand-written "Codebase map" instead.
+- **Graphify:** `graphify-out/` (a generated knowledge graph) is committed, with its `cache/` directory ignored. It was generated while the folder was still named `localhook-ai`, so the generated files contain the old name and the local path; regenerate it if that matters.
 
-## Things deliberately not done
+## Verification status
 
-- No real DigitalOcean deploy, Docker build, GitHub webhook, or `llama-server` run happened in this environment (none was available), so those paths are unverified. See the final summary.
-- No pushing: no remote was added and nothing was pushed.
+Verified:
+
+- Unit and integration tests, typecheck, and a full local run (`dev:all`, demo sender, replay, hot-reload fix).
+- A real Llama 3.2 3B Q4_K_M run of the eval on CPU (rule-based 6/6, AI 5/6; see `eval/results.md`).
+- The Dockerfile and the App Platform deployment: deployed, healthy, one 512MB container, autodeploy off, and tested end to end with a real GitHub ping on 22 Oct 2026.
+
+Not verified:
+
+- **Node 20.** Development and testing used Node 24; `engines` says `>=20` and the Docker image uses Node 20, but the test suite has not been run on Node 20 locally.
+- **The 1B model.** No eval run exists for it.
+- **Real Stripe and HubSpot senders.** Only the demo sender (with simulated signatures) and a real GitHub ping have been used.
+
+## Deliberately not done
+
+- No pushing from the build sessions; history only changes by adding commits once something is pushed.
+- No relay behaviour changes in the cleanup pass.
