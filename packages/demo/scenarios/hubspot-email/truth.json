@@ -1,0 +1,4 @@
+{
+  "description": "The contact has no email property, but the handler calls email.toLowerCase().",
+  "keywords": [["email"], ["missing", "undefined", "absent", "not present", "omitted", "no email", "does not contain", "doesn't contain", "lacks", "not include", "not exist"]]
+}

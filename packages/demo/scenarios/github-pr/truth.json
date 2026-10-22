@@ -1,0 +1,4 @@
+{
+  "description": "The event is an issues event: payload has no pull_request object, but the handler reads pull_request.user.login.",
+  "keywords": [["pull_request"], ["undefined", "missing", "absent", "not present", "does not contain", "doesn't contain", "no pull_request", "lacks", "not include", "not exist"]]
+}

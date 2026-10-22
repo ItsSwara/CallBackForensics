@@ -1,0 +1,11 @@
+{
+  "action": "opened",
+  "issue": {
+    "number": 57,
+    "title": "Webhook retries are not logged",
+    "user": { "login": "hubot", "id": 4412 },
+    "state": "open"
+  },
+  "repository": { "full_name": "acme/api", "private": true },
+  "sender": { "login": "hubot" }
+}

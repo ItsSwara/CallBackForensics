@@ -1,0 +1,4 @@
+{
+  "description": "Guest checkout: data.object.customer is null, but the handler reads customer.email.",
+  "keywords": [["customer"], ["null", "guest"]]
+}

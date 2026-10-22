@@ -1,0 +1,4 @@
+{
+  "description": "items is an empty array, but the handler reads items[0].price.",
+  "keywords": [["items"], ["empty", "[]", "no items", "zero", "length 0", "no element", "no line"]]
+}

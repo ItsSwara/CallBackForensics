@@ -1,0 +1,14 @@
+{
+  "action": "opened",
+  "number": 42,
+  "pull_request": {
+    "id": 1934021,
+    "title": "Fix retry backoff in queue worker",
+    "html_url": "https://github.com/acme/api/pull/42",
+    "user": { "login": "octocat", "id": 583231 },
+    "head": { "ref": "fix/retry-backoff" },
+    "base": { "ref": "main" }
+  },
+  "repository": { "full_name": "acme/api", "private": true },
+  "sender": { "login": "octocat" }
+}

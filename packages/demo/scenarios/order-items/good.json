@@ -1,0 +1,9 @@
+{
+  "id": "ord_90311",
+  "currency": "usd",
+  "items": [
+    { "sku": "TSHIRT-M-BLK", "qty": 2, "price": 1999 },
+    { "sku": "MUG-WHT", "qty": 1, "price": 1299 }
+  ],
+  "customer": { "id": "c_2210", "email": "ming@example.com" }
+}

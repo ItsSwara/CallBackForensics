@@ -1,0 +1,15 @@
+{
+  "id": "evt_1QfXm9LkdIwHu7ixZ9cD",
+  "object": "event",
+  "type": "checkout.session.completed",
+  "data": {
+    "object": {
+      "id": "cs_test_d4E5f6",
+      "object": "checkout.session",
+      "amount_total": 2500,
+      "currency": "usd",
+      "payment_status": "paid",
+      "customer": null
+    }
+  }
+}

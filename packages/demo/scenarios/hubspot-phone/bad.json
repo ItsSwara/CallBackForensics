@@ -1,0 +1,12 @@
+{
+  "subscriptionType": "contact.propertyChange",
+  "portalId": 8821034,
+  "objectId": 40214,
+  "occurredAt": 1761120060000,
+  "properties": {
+    "firstname": "Ravi",
+    "lastname": "Kumar",
+    "email": "ravi.kumar@example.com",
+    "phone_number": "+91 98765 43210"
+  }
+}

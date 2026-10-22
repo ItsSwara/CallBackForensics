@@ -1,0 +1,15 @@
+{
+  "id": "evt_1QfXk2LkdIwHu7ixR1aB",
+  "object": "event",
+  "type": "checkout.session.completed",
+  "data": {
+    "object": {
+      "id": "cs_test_a1B2c3",
+      "object": "checkout.session",
+      "amount_total": 4900,
+      "currency": "usd",
+      "payment_status": "paid",
+      "customer": { "id": "cus_Qx81", "email": "dana@example.com", "name": "Dana Whitfield" }
+    }
+  }
+}
