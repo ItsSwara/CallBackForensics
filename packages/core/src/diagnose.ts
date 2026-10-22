@@ -2,6 +2,7 @@ import path from 'node:path';
 import { askModel, isAiOk, type AiResult } from './ai.js';
 import { AiCache, cacheKey } from './cache.js';
 import { diffPayloads } from './diff.js';
+import { oauthFindings } from './oauth.js';
 import { buildPrompt, type BuiltPrompt } from './prompt.js';
 import { readSourceContext, type SourceResult } from './source.js';
 import { isIgnoredFrame, parseStackTrace, type Frame } from './stack.js';
@@ -9,6 +10,8 @@ import { isIgnoredFrame, parseStackTrace, type Frame } from './stack.js';
 export interface Evidence {
   method: string;
   path: string;
+  /** Raw query string without the leading ?. */
+  query?: string;
   status: number | null;
   payload?: Buffer | string;
   /** Body of the most recent successful request to the same method + path. */
@@ -49,12 +52,12 @@ export function analyzeRules(ev: Evidence): RuleBased {
   if (ev.connectionFailed) {
     ruleBased.push('The local app did not answer: connection refused or timed out. Check it is running on the expected port.');
   }
+  if (ev.query !== undefined && /^GET$/i.test(ev.method)) ruleBased.push(...oauthFindings(ev.path, ev.query));
   const payloadText = asText(ev.payload);
   const current = parseJson(payloadText);
   if (current === undefined) {
-    ruleBased.push(
-      payloadText ? 'Payload is not valid JSON, so no structural comparison was possible.' : 'Request had no body.',
-    );
+    if (payloadText) ruleBased.push('Payload is not valid JSON, so no structural comparison was possible.');
+    else if (!/^(GET|HEAD)$/i.test(ev.method)) ruleBased.push('Request had no body.');
   } else {
     ruleBased.push(...diffPayloads(parseJson(asText(ev.prevOkPayload)), current));
   }
@@ -84,7 +87,7 @@ export function promptFor(ev: Evidence, base: RuleBased): BuiltPrompt {
     .join('\n');
   return buildPrompt({
     method: ev.method,
-    path: ev.path,
+    path: ev.query ? `${ev.path}?${ev.query.slice(0, 300)}` : ev.path,
     status: ev.status,
     payload: asText(ev.payload) ?? '',
     diff: base.ruleBased,

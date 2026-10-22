@@ -1,0 +1,4 @@
+{
+  "description": "The provider redirected back with error=access_denied (redirect_uri mismatch) and no code; the handler calls code.trim() unconditionally.",
+  "keywords": [["access_denied", "redirect_uri", "redirect uri"], ["code"]]
+}

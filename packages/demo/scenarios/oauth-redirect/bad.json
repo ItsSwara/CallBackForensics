@@ -1,0 +1,4 @@
+{
+  "method": "GET",
+  "query": "error=access_denied&error_description=redirect_uri+mismatch"
+}

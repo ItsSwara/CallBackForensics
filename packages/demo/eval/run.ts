@@ -5,7 +5,7 @@ import path from 'node:path';
 import { parseArgs } from 'node:util';
 import { diagnose, isAiOk, type Diagnosis } from '@cbf/core';
 import { StderrBuffer } from '../../cli/src/stderr.js';
-import { buildRequest, demoDir, loadTruth, repoRoot, SCENARIOS, type Truth } from '../scenarios.js';
+import { buildRequest, demoDir, loadTruth, repoRoot, SCENARIOS, toFetch, type Truth } from '../scenarios.js';
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -25,9 +25,9 @@ async function freePort(): Promise<number> {
 
 async function post(port: number, scenario: string, kind: 'good' | 'bad') {
   const req = buildRequest(scenario, kind);
-  const res = await fetch(`http://127.0.0.1:${port}${req.path}`, { method: 'POST', headers: req.headers, body: new Uint8Array(req.body) });
+  const res = await fetch(...toFetch(`http://127.0.0.1:${port}`, req));
   await res.text();
-  return { status: res.status, body: req.body, path: req.path };
+  return { status: res.status, body: req.body, method: req.method, path: req.path, query: req.query };
 }
 
 /**
@@ -90,8 +90,9 @@ async function main() {
     }
     const d: Diagnosis = await diagnose(
       {
-        method: 'POST',
+        method: bad.method,
         path: bad.path,
+        query: bad.query,
         status: bad.status,
         payload: bad.body,
         prevOkPayload: good.status < 300 ? good.body : undefined,

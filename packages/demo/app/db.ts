@@ -42,3 +42,11 @@ export const analytics = {
     this.events.push({ name, props });
   },
 };
+
+export const loginSessions = new Map<string, { verifier: string }>([['st_9f2c1', { verifier: 'v-demo-verifier' }]]);
+
+export const oauthClient = {
+  async exchange(input: { code: string; verifier: string }) {
+    return { accessToken: `tok_${input.code.slice(0, 6)}` };
+  },
+};

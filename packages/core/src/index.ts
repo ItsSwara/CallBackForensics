@@ -5,3 +5,4 @@ export * from './prompt.js';
 export * from './ai.js';
 export * from './cache.js';
 export * from './diagnose.js';
+export * from './oauth.js';

@@ -2,6 +2,7 @@ import express, { type NextFunction, type Request, type RequestHandler, type Res
 import { handleGithubPr } from '../handlers/github-pr.js';
 import { handleHubspotEmail } from '../handlers/hubspot-email.js';
 import { handleHubspotPhone } from '../handlers/hubspot-phone.js';
+import { handleOauthRedirect } from '../handlers/oauth-redirect.js';
 import { handleOrderItems } from '../handlers/order-items.js';
 import { handleStripeCustomer } from '../handlers/stripe-customer.js';
 import { verifyHub, verifyStripe } from '../signing.js';
@@ -48,6 +49,7 @@ app.post('/webhooks/github', requireHub, route(handleGithubPr));
 app.post('/webhooks/stripe', requireStripe, route(handleStripeCustomer));
 app.post('/webhooks/hubspot-email', requireHub, route(handleHubspotEmail));
 app.post('/webhooks/orders', requireHub, route(handleOrderItems));
+app.get('/callback/oauth', route(handleOauthRedirect));
 
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   console.error(err.stack);

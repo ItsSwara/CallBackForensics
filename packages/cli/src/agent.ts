@@ -158,6 +158,7 @@ export async function startAgent(o: AgentOptions): Promise<Agent> {
     const evidence: Evidence = {
       method: ev.method,
       path: ev.path,
+      query: ev.query,
       status: ev.status,
       payload: ev.body,
       prevOkPayload: prev?.body,

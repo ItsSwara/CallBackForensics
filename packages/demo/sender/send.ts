@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { parseArgs } from 'node:util';
 import { loadConfig, publicUrl, type Config } from '../../cli/src/config.js';
-import { buildRequest, getScenario, repoRoot, type Kind } from '../scenarios.js';
+import { buildRequest, getScenario, repoRoot, toFetch, type Kind } from '../scenarios.js';
 
 const trimSlash = (u: string) => u.replace(/\/+$/, '');
 
@@ -37,7 +37,7 @@ function readConfig(file: string): Config | null {
 export async function sendScenario(base: string, scenario: string, kind: Kind): Promise<{ status: number; body: string; ms: number }> {
   const req = buildRequest(scenario, kind);
   const started = Date.now();
-  const res = await fetch(base + req.path, { method: 'POST', headers: req.headers, body: new Uint8Array(req.body) });
+  const res = await fetch(...toFetch(base, req));
   const body = await res.text();
   return { status: res.status, body, ms: Date.now() - started };
 }
@@ -55,7 +55,7 @@ async function main() {
   }
   getScenario(scenario);
   const base = await resolveBase(values.url);
-  console.log(`POST ${base}${getScenario(scenario).path}`);
+  console.log(`${getScenario(scenario).mode === 'query' ? 'GET' : 'POST'} ${base}${getScenario(scenario).path}`);
   printResult(scenario, kind, await sendScenario(base, scenario, kind));
 }
 
