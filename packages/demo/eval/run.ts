@@ -37,7 +37,7 @@ async function post(port: number, scenario: string, kind: 'good' | 'bad') {
  */
 async function main() {
   const { values } = parseArgs({
-    options: { 'ai-url': { type: 'string' }, label: { type: 'string' }, out: { type: 'string' } },
+    options: { 'ai-url': { type: 'string' }, label: { type: 'string' }, note: { type: 'string' }, out: { type: 'string' } },
   });
   const aiUrl = values['ai-url'] || process.env.CBF_AI_URL || 'http://localhost:8080';
   const label = values.label || 'run';
@@ -129,7 +129,7 @@ async function main() {
   const details = rows
     .map((r) => `<details><summary>${r.scenario}</summary>\n\n\`\`\`\n${r.answer}\n\`\`\`\n\n</details>`)
     .join('\n');
-  const block = `\n## ${label} · ${new Date().toISOString().slice(0, 16).replace('T', ' ')} · model: ${model} · server: ${aiUrl}\n\n${header}\n${table}\n\n${summary}\n\nPass means the output mentions every keyword group in each scenario's truth.json (fixed in advance). Rule-based scoring uses the diff findings plus the parsed error line. Failures are reported as they happened.\n\n${details}\n`;
+  const block = `\n## ${label} · ${new Date().toISOString().slice(0, 16).replace('T', ' ')} · model: ${model} · server: ${aiUrl}${values.note ? ` · ${values.note}` : ''}\n\n${header}\n${table}\n\n${summary}\n\nScoring is a keyword match: an answer passes if it contains every keyword group in that scenario's truth.json (fixed in advance). It does not judge whether the suggested fix is correct. Rule-based scoring uses the diff findings plus the parsed error line.\n\n${details}\n`;
   fs.mkdirSync(path.dirname(outFile), { recursive: true });
   if (!fs.existsSync(outFile)) fs.writeFileSync(outFile, '# Eval results\n\nAppended by `npm run eval`. One block per run.\n');
   fs.appendFileSync(outFile, block);

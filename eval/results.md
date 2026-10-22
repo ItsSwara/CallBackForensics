@@ -1,10 +1,16 @@
 # Eval results
 
-Appended by `npm run eval -- --ai-url http://localhost:8080 --label <1b|3b|...>`. One block per run, newest last.
+Real runs only, one block per run, newest last. Produced by:
 
-No real-model runs are recorded yet.
+```bash
+npm run eval -- --ai-url http://localhost:8080 --label <short-name> --note "<model, quantization, hardware>"
+```
 
-## 3b · 2026-10-22 10:31 · model: C:\models\Llama-3.2-3B-Instruct-Q4_K_M.gguf · server: http://localhost:8080
+## Llama 3.2 3B Instruct · Q4_K_M · CPU · 22 Oct 2026
+
+- Model: `Llama-3.2-3B-Instruct-Q4_K_M.gguf` (4-bit quantization), served by llama.cpp `llama-server` at `http://localhost:8080`
+- Hardware: CPU inference only, Windows 11
+- Scenarios: 6 (five JSON webhooks and one OAuth redirect), one bad payload each
 
 | scenario | rule-based | AI pass/fail | seconds |
 |---|---|---|---|
@@ -17,7 +23,7 @@ No real-model runs are recorded yet.
 
 Rule-based: 6/6 · AI: 5/6
 
-Pass means the output mentions every keyword group in each scenario's truth.json (fixed in advance). Rule-based scoring uses the diff findings plus the parsed error line. Failures are reported as they happened.
+Scoring is a keyword match: an answer passes if it contains every keyword group in that scenario's `truth.json` (field name and problem type, fixed in advance). It does not judge whether the suggested fix is correct. Rule-based scoring uses the diff findings plus the parsed error line.
 
 <details><summary>hubspot-phone</summary>
 
