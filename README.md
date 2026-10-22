@@ -2,11 +2,10 @@
 
 **Tunneling is solved. We add a private, local AI that reads the failed request plus your own source code and explains the bug.**
 
-Works with any inbound callback. The MVP diagnosis is tuned for JSON webhooks; OAuth diagnosis is limited to the rules listed below.
+Works with any inbound callback. The MVP diagnosis is tuned for JSON webhooks; OAuth diagnosis is limited to the rules listed in [Reference](#reference).
 
 AI analysis runs locally. The relay stores events for 24h with token auth.
 
-- Repo: <https://github.com/ItsSwara/CallBackForensics>
 - More docs: [WALKTHROUGH.md](WALKTHROUGH.md) (one request, hop by hop) · [DEPLOY.md](DEPLOY.md) · [eval/results.md](eval/results.md)
 
 ## The problem
@@ -87,32 +86,10 @@ cbf doctor [--port 3000] [--ai-url http://localhost:8080]
 
 `callback-forensics` is installed as an alias of `cbf`. From this repo use `npm run cbf -- <args>`.
 
-| Env var | Used by | Meaning |
-|---|---|---|
-| `PORT`, `DB_PATH`, `TRUST_PROXY` | relay | listen port, SQLite file (default `./relay.db`), proxy hops |
-| `CBF_RELAY` | cli | default for `init --relay` |
-| `CBF_AI_URL` | cli, demo | model server (default `http://localhost:8080`) |
-| `CBF_HOME` | cli | config and event store directory (default `~/.cbf`) |
-| `CBF_CACHE` | cli, demo | AI answer cache file (default `~/.cbf/ai-cache.db`) |
-| `CBF_URL`, `DEMO_SECRET` | demo | public relay URL for the sender; HMAC secret |
-
-Relay limits: 1MB body (413), 60 requests/minute per tunnel (429), 20 tunnels per IP per day, 25s response wait (504), events kept 24h.
-
 **What the diagnosis uses.** The agent waits 400ms after a failure, takes the app's stderr for that request, and builds:
 
 1. *Rule-based findings (instant):* a payload diff against the last 2xx for the same method and path (missing keys, new keys, type changes, fields that became null, empty arrays, with JSON paths), the parsed error line, the first non-`node_modules` stack frame, and the source around it. It never reads files outside `--src`. With no earlier successful payload there is nothing to compare, so only empty arrays are flagged.
 2. *AI explanation (local model):* a compact prompt (about 1,500 tokens max): PAYLOAD, PAYLOAD DIFF, ERROR, FAILING CODE (failing line marked `>>`). Answers are cached in SQLite by the hash of the prompt; the cache only holds real model output. Model calls run one at a time.
-
-### OAuth rules (exactly these four)
-
-Applied to GET requests whose query has `error`, `error_description`, `code` or `state`, or whose path contains `oauth`, `callback`, `redirect` or `auth`:
-
-1. `error=<code>` is reported, with a plain-English meaning for the standard codes (`access_denied`, `invalid_request`, `unauthorized_client`, `unsupported_response_type`, `invalid_scope`, `server_error`, `temporarily_unavailable`).
-2. `error_description=<text>` is echoed as the provider's explanation; a `redirect_uri` mismatch is called out.
-3. A missing `code` parameter is reported.
-4. A missing `state` parameter is reported.
-
-Nothing else about OAuth is checked: no token validation, no PKCE verification, no provider-specific behavior.
 
 ### Demo scenarios
 
@@ -177,7 +154,7 @@ The relay ships with a `Dockerfile` and a DigitalOcean App Platform spec (`.do/a
 | Tool | What it does better | What Callback Forensics adds |
 |---|---|---|
 | **ngrok** | Mature, fast, polished tunnels; custom domains, auth, and a request inspector with replay. | A diagnosis step: it ties the failed request to your app's stderr and source and explains the bug with a local model. It is open source and self-hostable, but far less battle-tested. |
-| **Cloudflare Tunnel** | Free, very reliable, runs on your own domain, great for exposing real services. | Callback-specific tooling: event history, one-click replay, payload diff, explanations. Cloudflare Tunnel does none of the inspection. |
+| **Cloudflare Tunnel** | Free, very reliable, runs on your own domain, great for exposing real services. | Callback-specific tooling: event history, one-click replay, payload diff, explanations. Cloudflare Tunnel has no callback-specific inspection. |
 | **Hookdeck** | Production-grade hosted webhook infrastructure: retries, queues, filtering, transformations, observability, alerting. | A local-first debugging loop with a model that runs on your machine, and a code-aware explanation. It does not replace Hookdeck for production delivery guarantees. |
 | **Stripe CLI** | First-party, understands Stripe events, signing secrets and `stripe trigger`. | Works with any sender (GitHub, HubSpot, your own) and explains failures from your code. It does not know provider-specific semantics the way the Stripe CLI does. |
 
@@ -186,13 +163,41 @@ The relay ships with a `Dockerfile` and a DigitalOcean App Platform spec (`.do/a
 - **Stack trace parsing is Node-only** (`at fn (file:line:col)`). For other languages you get the payload diff and the model, without code context.
 - **Replaying a signed callback re-sends the original headers.** If the provider's signature includes a timestamp your app rejects when old, the replay fails for that reason.
 - **Small models can be wrong.** That is why the rule-based findings are shown next to the AI text; check the highlighted code.
-- **404/405 skips the model.** On HTTP 404 or 405, or when a failure leaves no stderr and no stack frame (while the agent is capturing stderr), the finding is "No route matched <METHOD> <path> on the local app (HTTP <status>). This is a routing problem, not a payload problem. Check the path your provider is calling." No model call is made. In forward-only mode (no app command) empty stderr proves nothing, so the second condition does not apply.
-- **OAuth diagnosis covers only the four rules above.**
+- **404/405 skips the model.** On HTTP 404 or 405, or when a failure leaves no stderr and no stack frame (while the agent is capturing stderr), the finding is `No route matched <METHOD> <path> on the local app (HTTP <status>). This is a routing problem, not a payload problem. Check the path your provider is calling.` No model call is made. In forward-only mode (no app command) empty stderr proves nothing, so the second condition does not apply.
+- **OAuth diagnosis covers only the four rules in [Reference](#reference).**
 - **Node version:** developed and tested on Node 24; Node 20 not verified.
 - **Relay storage is ephemeral on App Platform:** a redeploy loses buffered events and tunnels.
 - Callbacks pass through the relay to reach your machine; only the AI analysis is local. Do not point production secrets at a relay you do not control.
 - Local model latency on CPU can be 10 to 30 seconds on slower machines (2.5 to 5.4 s measured above).
 - "Copy as curl" is built from the stored text body; binary bodies are not reproduced.
+
+## Reference
+
+### Environment variables
+
+| Env var | Used by | Meaning |
+|---|---|---|
+| `PORT`, `DB_PATH`, `TRUST_PROXY` | relay | listen port, SQLite file (default `./relay.db`), proxy hops |
+| `CBF_RELAY` | cli | default for `init --relay` |
+| `CBF_AI_URL` | cli, demo | model server (default `http://localhost:8080`) |
+| `CBF_HOME` | cli | config and event store directory (default `~/.cbf`) |
+| `CBF_CACHE` | cli, demo | AI answer cache file (default `~/.cbf/ai-cache.db`) |
+| `CBF_URL`, `DEMO_SECRET` | demo | public relay URL for the sender; HMAC secret |
+
+### Relay limits
+
+1MB body (413), 60 requests/minute per tunnel (429), 20 tunnels per IP per day, 25s response wait (504), events kept 24h.
+
+### OAuth rules (exactly these four)
+
+Applied to GET requests whose query has `error`, `error_description`, `code` or `state`, or whose path contains `oauth`, `callback`, `redirect` or `auth`:
+
+1. `error=<code>` is reported, with a plain-English meaning for the standard codes (`access_denied`, `invalid_request`, `unauthorized_client`, `unsupported_response_type`, `invalid_scope`, `server_error`, `temporarily_unavailable`).
+2. `error_description=<text>` is echoed as the provider's explanation; a `redirect_uri` mismatch is called out.
+3. A missing `code` parameter is reported.
+4. A missing `state` parameter is reported.
+
+Nothing else about OAuth is checked: no token validation, no PKCE verification, no provider-specific behavior.
 
 ## Codebase map (Graphify)
 
