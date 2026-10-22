@@ -1,5 +1,5 @@
 import type Database from 'better-sqlite3';
-import { openDatabase, type Diagnosis } from '@localhook/core';
+import { openDatabase, type Diagnosis } from '@cbf/core';
 
 export type Headers = Record<string, string | string[]>;
 

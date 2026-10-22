@@ -4,7 +4,7 @@ import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import express from 'express';
-import { AiCache, analyzeRules, checkAi, runAi, type Evidence } from '@localhook/core';
+import { AiCache, analyzeRules, checkAi, runAi, type Evidence } from '@cbf/core';
 import { spawnApp, type AppProcess } from './app-process.js';
 import { cachePath as defaultCachePath, eventsDbPath, publicUrl as makePublicUrl, type Config } from './config.js';
 import { forwardToLocal, type ForwardResult } from './forward.js';

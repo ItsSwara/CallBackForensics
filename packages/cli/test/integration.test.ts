@@ -82,7 +82,7 @@ describe('relay -> websocket -> cli -> local app', () => {
     try {
       await waitFor(() => relay.isConnected(t.id));
       const sig = crypto.createHmac('sha256', 'secret').update(RAW).digest('hex');
-      const res = await fetch(`${relayUrl}/h/${t.id}/hooks/stripe?x=1&y=two`, {
+      const res = await fetch(`${relayUrl}/cb/${t.id}/hooks/stripe?x=1&y=two`, {
         method: 'POST',
         headers: { 'content-type': 'application/json', 'x-hub-signature-256': `sha256=${sig}`, 'x-custom': 'abc' },
         body: RAW,
@@ -114,7 +114,7 @@ describe('relay -> websocket -> cli -> local app', () => {
     const t = await newTunnel();
     const before = seen.length;
     for (const n of ['one', 'two']) {
-      const r = await fetch(`${relayUrl}/h/${t.id}/queued/${n}`, { method: 'POST', body: n });
+      const r = await fetch(`${relayUrl}/cb/${t.id}/queued/${n}`, { method: 'POST', body: n });
       expect(r.status).toBe(202);
       expect(await r.json()).toMatchObject({ queued: true });
     }
@@ -137,9 +137,9 @@ describe('relay -> websocket -> cli -> local app', () => {
   });
 
   it('rejects unknown tunnels, bad tokens and oversized bodies', async () => {
-    expect((await fetch(`${relayUrl}/h/nope/x`, { method: 'POST', body: 'a' })).status).toBe(404);
+    expect((await fetch(`${relayUrl}/cb/nope/x`, { method: 'POST', body: 'a' })).status).toBe(404);
     const t = await newTunnel();
-    expect((await fetch(`${relayUrl}/h/${t.id}/x`, { method: 'POST', body: Buffer.alloc(1024 * 1024 + 10, 1) })).status).toBe(413);
+    expect((await fetch(`${relayUrl}/cb/${t.id}/x`, { method: 'POST', body: Buffer.alloc(1024 * 1024 + 10, 1) })).status).toBe(413);
     const { WebSocket } = await import('ws');
     const code = await new Promise<number>((resolve) => {
       const ws = new WebSocket(`${relayUrl.replace('http', 'ws')}/tunnel?id=${t.id}&token=wrong`);

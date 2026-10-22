@@ -1,8 +1,14 @@
 {
-  "name": "@localhook/cli",
+  "name": "@cbf/cli",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "main": "src/index.ts",
-  "exports": { ".": "./src/index.ts" }
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "bin": {
+    "cbf": "./bin/cbf.mjs",
+    "callback-forensics": "./bin/cbf.mjs"
+  }
 }

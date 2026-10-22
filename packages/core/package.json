@@ -1,5 +1,5 @@
 {
-  "name": "@localhook/core",
+  "name": "@cbf/core",
   "version": "0.1.0",
   "private": true,
   "type": "module",

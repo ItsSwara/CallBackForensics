@@ -1,19 +1,19 @@
 import net from 'node:net';
 import { parseArgs } from 'node:util';
-import { checkAi } from '@localhook/core';
+import { checkAi } from '@cbf/core';
 import { startAgent } from './agent.js';
 import { loadConfig, publicUrl, saveConfig } from './config.js';
 
-const HELP = `localhook - webhook debugger with a local explainer
+const HELP = `cbf - callback debugger with a local explainer
 
 Usage:
-  localhook init --relay <url> [--force]
-  localhook start [--port 3000] [--ai-url http://localhost:8080] [--src .] [--dashboard-port 4000] [--no-relay] [-- <app command>]
-  localhook doctor [--port 3000] [--ai-url http://localhost:8080]
+  cbf init --relay <url> [--force]
+  cbf start [--port 3000] [--ai-url http://localhost:8080] [--src .] [--dashboard-port 4000] [--no-relay] [-- <app command>]
+  cbf doctor [--port 3000] [--ai-url http://localhost:8080]
 
-Env: LOCALHOOK_RELAY, LOCALHOOK_AI_URL, LOCALHOOK_HOME`;
+Env: CBF_RELAY, CBF_AI_URL, CBF_HOME`;
 
-const aiDefault = () => process.env.LOCALHOOK_AI_URL || 'http://localhost:8080';
+const aiDefault = () => process.env.CBF_AI_URL || 'http://localhost:8080';
 
 function splitArgv(argv: string[]): { own: string[]; app: string[] } {
   const i = argv.indexOf('--');
@@ -22,8 +22,8 @@ function splitArgv(argv: string[]): { own: string[]; app: string[] } {
 
 async function init(args: string[]) {
   const { values } = parseArgs({ args, options: { relay: { type: 'string' }, force: { type: 'boolean' } } });
-  const relay = (values.relay || process.env.LOCALHOOK_RELAY || '').replace(/\/+$/, '');
-  if (!relay) throw new Error('Pass --relay <url> (or set LOCALHOOK_RELAY).');
+  const relay = (values.relay || process.env.CBF_RELAY || '').replace(/\/+$/, '');
+  if (!relay) throw new Error('Pass --relay <url> (or set CBF_RELAY).');
   const existing = loadConfig();
   if (existing && existing.relay === relay && !values.force) {
     console.log('Already initialised. Your stable public URL is:\n');
@@ -37,7 +37,7 @@ async function init(args: string[]) {
   saveConfig({ relay, id, token });
   console.log('Tunnel created. Your stable public URL (it never changes):\n');
   console.log(`  ${publicUrl({ relay, id })}\n`);
-  console.log('Next: localhook start --port 3000');
+  console.log('Next: cbf start --port 3000');
 }
 
 async function start(args: string[], appCommand: string[]) {
@@ -52,7 +52,7 @@ async function start(args: string[], appCommand: string[]) {
     },
   });
   const relay = values['no-relay'] ? null : loadConfig();
-  if (!values['no-relay'] && !relay) throw new Error('No tunnel configured. Run: localhook init --relay <url>  (or use --no-relay for local-only mode)');
+  if (!values['no-relay'] && !relay) throw new Error('No tunnel configured. Run: cbf init --relay <url>  (or use --no-relay for local-only mode)');
   const agent = await startAgent({
     relay,
     port: Number(values.port),
@@ -93,7 +93,7 @@ async function doctor(args: string[]) {
     if (!ok) bad++;
     console.log(`[${mark(ok)}] ${text}`);
   };
-  row(!!cfg, cfg ? `config found (${publicUrl(cfg)})` : 'no config: run `localhook init --relay <url>`');
+  row(!!cfg, cfg ? `config found (${publicUrl(cfg)})` : 'no config: run `cbf init --relay <url>`');
   if (cfg) {
     let ok = false;
     try {

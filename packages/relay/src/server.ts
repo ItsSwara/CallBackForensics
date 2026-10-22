@@ -45,14 +45,14 @@ const HOP_BY_HOP = new Set(['connection', 'keep-alive', 'transfer-encoding', 'up
 const sha256 = (s: string) => crypto.createHash('sha256').update(s).digest('hex');
 
 const LANDING = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>LocalHook AI relay</title>
+<title>Callback Forensics relay</title>
 <style>body{font:16px/1.6 system-ui,sans-serif;background:#0f1218;color:#e6e9ef;max-width:640px;margin:48px auto;padding:0 20px}
 code,pre{background:#1a2030;border-radius:6px;padding:2px 6px}pre{padding:12px;overflow:auto}h1{margin-bottom:0}small{color:#8b94a7}</style></head>
-<body><h1>LocalHook AI relay</h1><small>Stable public webhook URLs that forward to your localhost.</small>
+<body><h1>Callback Forensics relay</h1><small>Stable public webhook URLs that forward to your localhost.</small>
 <h3>Quick start</h3>
-<ol><li>Create a tunnel: <pre>npm run localhook -- init --relay https://THIS-HOST</pre></li>
-<li>Run the agent next to your app: <pre>npm run localhook -- start --port 3000</pre></li>
-<li>Point GitHub / Stripe / HubSpot at <code>https://THIS-HOST/h/&lt;your-id&gt;/your/path</code></li></ol>
+<ol><li>Create a tunnel: <pre>npm run cbf -- init --relay https://THIS-HOST</pre></li>
+<li>Run the agent next to your app: <pre>npm run cbf -- start --port 3000</pre></li>
+<li>Point GitHub / Stripe / HubSpot at <code>https://THIS-HOST/cb/&lt;your-id&gt;/your/path</code></li></ol>
 <p><small>The relay stores events for 24 hours and authenticates tunnels with a token. AI analysis runs on your machine, not here.</small></p>
 </body></html>`;
 
@@ -226,7 +226,7 @@ export function createRelay(opts: RelayOptions = {}): Relay {
     }
     res.status(r.status >= 100 && r.status < 600 ? r.status : 502).end(Buffer.from(r.bodyBase64 || '', 'base64'));
   };
-  app.all(/^\/h\/([^/]+)(\/.*)?$/, express.raw({ type: () => true, limit: bodyLimit }), publicHandler);
+  app.all(/^\/cb\/([^/]+)(\/.*)?$/, express.raw({ type: () => true, limit: bodyLimit }), publicHandler);
 
   app.use((err: Error & { type?: string; status?: number }, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     if (err.type === 'entity.too.large') {

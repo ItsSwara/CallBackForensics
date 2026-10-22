@@ -8,12 +8,12 @@ export interface Config {
   token: string;
 }
 
-/** Directory for config + local event store. Override with LOCALHOOK_HOME. */
-export const homeDir = () => process.env.LOCALHOOK_HOME || path.join(os.homedir(), '.localhook');
+/** Directory for config + local event store. Override with CBF_HOME. */
+export const homeDir = () => process.env.CBF_HOME || path.join(os.homedir(), '.cbf');
 export const configPath = () => path.join(homeDir(), 'config.json');
 export const eventsDbPath = () => path.join(homeDir(), 'events.db');
 /** The AI cache is shared by every run so `demo:warm` can warm it for later. */
-export const cachePath = () => process.env.LOCALHOOK_CACHE || path.join(os.homedir(), '.localhook', 'ai-cache.db');
+export const cachePath = () => process.env.CBF_CACHE || path.join(os.homedir(), '.cbf', 'ai-cache.db');
 
 export function loadConfig(): Config | null {
   try {
@@ -28,4 +28,4 @@ export function saveConfig(c: Config): void {
   fs.writeFileSync(configPath(), JSON.stringify(c, null, 2), { mode: 0o600 });
 }
 
-export const publicUrl = (c: Pick<Config, 'relay' | 'id'>) => `${c.relay.replace(/\/+$/, '')}/h/${c.id}/`;
+export const publicUrl = (c: Pick<Config, 'relay' | 'id'>) => `${c.relay.replace(/\/+$/, '')}/cb/${c.id}/`;
