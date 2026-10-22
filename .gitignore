@@ -1,0 +1,9 @@
+node_modules
+*.gguf
+.env
+*.db
+*.db-wal
+*.db-shm
+dist
+.localhook-dev
+*.log

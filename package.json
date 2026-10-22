@@ -1,0 +1,38 @@
+{
+  "name": "localhook-ai",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Open-source webhook debugger: stable public URL, local replay, and a local model that explains failures from real evidence.",
+  "license": "MIT",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "relay": "tsx packages/relay/src/index.ts",
+    "localhook": "tsx packages/cli/src/index.ts",
+    "dev:all": "tsx scripts/dev-all.ts",
+    "demo:app": "tsx watch packages/demo/app/server.ts",
+    "demo:send": "tsx packages/demo/sender/send.ts",
+    "demo:play": "tsx packages/demo/sender/play.ts",
+    "demo:fix": "tsx packages/demo/scripts/swap.ts fix",
+    "demo:reset": "tsx packages/demo/scripts/swap.ts reset",
+    "demo:warm": "tsx packages/demo/scripts/warm.ts",
+    "eval": "tsx packages/demo/eval/run.ts"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.6.2",
+    "express": "^4.21.2",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.17.0",
+    "@types/ws": "^8.5.13",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}
