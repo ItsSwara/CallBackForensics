@@ -1,0 +1,23 @@
+name: callback-forensics-relay
+region: nyc
+services:
+  - name: relay
+    github:
+      repo: ItsSwara/CallBackForensics
+      branch: main
+      deploy_on_push: true
+    dockerfile_path: Dockerfile
+    http_port: 8080
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    health_check:
+      http_path: /health
+    envs:
+      - key: PORT
+        value: "8080"
+      # App Platform disk is ephemeral: this buffer resets on every redeploy/restart. That is fine for a 24h buffer.
+      - key: DB_PATH
+        value: /data/relay.db
+      # Number of reverse-proxy hops in front of the relay, used for per-IP tunnel limits. See DEPLOY.md.
+      - key: TRUST_PROXY
+        value: "1"

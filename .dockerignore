@@ -1,0 +1,9 @@
+node_modules
+.git
+.cbf-dev
+*.db
+*.db-wal
+*.db-shm
+*.gguf
+.env
+eval
