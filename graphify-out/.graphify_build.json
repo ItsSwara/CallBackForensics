@@ -1,0 +1,23 @@
+{
+  "excludes": [
+    "node_modules",
+    ".cbf-dev",
+    ".env",
+    ".env.*",
+    "*.env",
+    "*.db",
+    "*.sqlite",
+    "*.sqlite3",
+    "*.gguf",
+    "*token*",
+    "*Token*",
+    "*tunnel*",
+    "*Tunnel*",
+    "*secret*",
+    "*Secret*",
+    "*credential*",
+    "*Credential*",
+    ".git",
+    ".cbf"
+  ]
+}

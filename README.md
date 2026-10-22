@@ -10,6 +10,7 @@ An open-source **callback debugger**. A cloud relay gives you one stable public 
 
 - Repo: <https://github.com/ItsSwara/CallBackForensics>
 - Docs: [WALKTHROUGH.md](WALKTHROUGH.md) (one request, hop by hop) · [DEMO.md](DEMO.md) (3-minute script and judge Q&A) · [DEPLOY.md](DEPLOY.md) · [DECISIONS.md](DECISIONS.md)
+- Codebase map: see graphify-out/GRAPH_REPORT.md
 
 ## How it compares (honestly)
 
