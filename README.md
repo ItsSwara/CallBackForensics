@@ -194,7 +194,7 @@ The relay ships with a `Dockerfile` and a DigitalOcean App Platform spec (`.do/a
 - Local model latency on CPU can be 10 to 30 seconds on slower machines (2.5 to 5.4 s measured above).
 - "Copy as curl" is built from the stored text body; binary bodies are not reproduced.
 
-## Codebase map
+## Codebase map (Graphify)
 
 `cbf` is short for Callback Forensics: it is the CLI binary, the `@cbf/*` package scope, the `~/.cbf` config directory and the `CBF_*` environment prefix.
 
@@ -205,10 +205,20 @@ packages/
   cli/     `cbf`: agent.ts (engine and dashboard server), tunnel.ts, forward.ts, store.ts, stderr.ts, dashboard/index.html
   demo/    demo app, handlers, fixes, scenarios, sender, eval, warm
 scripts/   dev-all.ts
-graphify-out/   generated knowledge graph of the codebase (GRAPH_REPORT.md is the readable summary)
+graphify-out/   generated knowledge graph of the codebase (see below)
 ```
 
-GitHub shows `graphify-out/graph.html` as source, so download it and open it locally in a browser. The generated graph files contain the original local folder name and path.
+[Graphify](https://pypi.org/project/graphifyy/) is an open-source tool that turns a project folder into a queryable knowledge graph. We ran it once on this repo.
+
+- `graphify-out/graph.html`: interactive map. Download it and open it locally, because GitHub shows HTML as source.
+- `graphify-out/GRAPH_REPORT.md`: readable summary.
+- `graphify-out/graph.json`: the graph data.
+
+The graph has 474 nodes and 836 edges in 52 communities, such as Relay Agent & Tunnel Process, AI Diagnosis Cache & Prompting, Webhook Route Handlers and Demo Sender & Scenario Builder.
+
+It is here as a map for new contributors and a way to ask questions about the code. It is not part of Callback Forensics and nothing at runtime uses it. It was generated before the docs cleanup, so it still lists two deleted files and shows the original local folder name and path.
+
+To rebuild it: `pip install graphifyy`, `graphify install`, then `/graphify .` in a coding assistant.
 
 ## License
 
