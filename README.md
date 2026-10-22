@@ -8,6 +8,17 @@ AI analysis runs locally. The relay stores events for 24h with token auth.
 
 - More docs: [WALKTHROUGH.md](WALKTHROUGH.md) (one request, hop by hop) · [DEPLOY.md](DEPLOY.md) · [eval/results.md](eval/results.md)
 
+## Demo
+
+![AI explanation for the hubspot-phone failure](docs/01-ai-explanation.png)
+The local model explains why the hubspot-phone callback failed, next to the rule-based findings.
+
+![Fix applied, then replay turning green](docs/02-fix-and-replay.png)
+After the fix is applied, replaying the same request returns 200.
+
+![Routing finding for a 404](docs/03-routing-finding.png)
+A wrong path is reported as a routing problem, without calling the model.
+
 ## The problem
 
 A third-party callback fails on your machine. The sender shows a bare `500`, the stack trace is buried in your terminal, and you cannot easily tell whether the payload changed, your handler is wrong, or the provider is calling the wrong path. Tunnels (ngrok, Cloudflare Tunnel) get the request to you, but nothing connects the failed request to your code and says why it failed.
@@ -220,6 +231,9 @@ graphify-out/   generated knowledge graph of the codebase (see below)
 - `graphify-out/graph.json`: the graph data.
 
 The graph has 474 nodes and 836 edges in 52 communities, such as Relay Agent & Tunnel Process, AI Diagnosis Cache & Prompting, Webhook Route Handlers and Demo Sender & Scenario Builder.
+
+![Graphify knowledge graph of the codebase](docs/04-codebase-graph.png)
+The generated graph, with nodes grouped into communities.
 
 It is here as a map for new contributors and a way to ask questions about the code. It is not part of Callback Forensics and nothing at runtime uses it. It was generated before the docs cleanup, so it still lists two deleted files and shows the original local folder name and path.
 
